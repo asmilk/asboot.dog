@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package asboot.auth.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -31,27 +32,27 @@ import static org.springframework.security.config.Customizer.withDefaults;
  * @since 0.1.0
  */
 @EnableWebSecurity
+@Configuration(proxyBeanMethods = false)
 public class DefaultSecurityConfig {
 
-	// formatter:off
+	// @formatter:off
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 		http
-			.authorizeRequests(authorizeRequests ->
-				authorizeRequests.anyRequest().authenticated()
+			.authorizeHttpRequests(authorize ->
+				authorize.anyRequest().authenticated()
 			)
-			.csrf().disable()
 			.formLogin(withDefaults());
 		return http.build();
 	}
-	// formatter:on
+	// @formatter:on
 
 	// @formatter:off
 	@Bean
 	UserDetailsService users() {
 		UserDetails user = User.withDefaultPasswordEncoder()
-				.username("user")
-				.password("123456")
+				.username("user1")
+				.password("password")
 				.roles("USER")
 				.build();
 		return new InMemoryUserDetailsManager(user);
