@@ -15,6 +15,10 @@
  */
 package asboot.auth.config;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import javax.sql.DataSource;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,10 +26,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * @author Joe Grandja
@@ -35,27 +38,30 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration(proxyBeanMethods = false)
 public class DefaultSecurityConfig {
 
-	// @formatter:off
 	@Bean
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 		http
-			.authorizeHttpRequests(authorize ->
-				authorize.anyRequest().authenticated()
-			)
+			.authorizeHttpRequests(authorize -> authorize
+				.anyRequest().authenticated())
+			.logout(logout -> logout
+				.logoutRequestMatcher(AntPathRequestMatcher.antMatcher("/logout")))
 			.formLogin(withDefaults());
 		return http.build();
 	}
+	// @formatter:off
 	// @formatter:on
 
 	// @formatter:off
 	@Bean
-	UserDetailsService users() {
-		UserDetails user = User.withDefaultPasswordEncoder()
-				.username("user1")
-				.password("password")
+	UserDetailsService users(DataSource dataSource) {
+		UserDetails user = User
+				.withUsername("user1")
+				.password("{noop}12345678")
 				.roles("USER")
 				.build();
-		return new InMemoryUserDetailsManager(user);
+		JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
+		users.createUser(user);
+		return users;
 	}
 	// @formatter:on
 

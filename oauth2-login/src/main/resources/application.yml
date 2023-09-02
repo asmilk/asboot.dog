@@ -4,9 +4,9 @@ server:
 logging:
   level:
     root: INFO
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.security.oauth2: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: INFO
 #    org.springframework.boot.autoconfigure: DEBUG
 
 spring:
@@ -45,8 +45,5 @@ spring:
 
 messages:
   base-uri: http://127.0.0.1:8090/messages
-  
 uaa:
-  token-introspect-uri: ${spring.security.oauth2.client.provider.spring.issuer-uri}/oauth2/introspect
-  token-revoke-uri: ${spring.security.oauth2.client.provider.spring.issuer-uri}/oauth2/revoke
-  logout-uri: ${spring.security.oauth2.client.provider.spring.issuer-uri}/logout
+  token-uri: http://127.0.0.1:9000/oauth2/introspect

@@ -24,10 +24,7 @@
                 <h4 th:text="${error}" class="text-center"></h4>
             </div>
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Authorize the client using <span style="font-family:monospace">grant_type</span>:</h3>
-                </div>
-                <div sec:authorize="isAnonymous()">
+            	<div sec:authorize="isAnonymous()">
 					<h1>isAnonymous</h1>
 					<a th:href="@{/index}">/index</a>
 				</div>
@@ -37,13 +34,10 @@
 						<input type="submit" value="Logout" />
 					</form>
 				</div>
+                <div class="panel-heading">
+                    <h3 class="panel-title">Authorize the client using <span style="font-family:monospace">grant_type</span>:</h3>
+                </div>
                 <ul class="list-group">
-                    <li class="list-group-item">
-                        <a href="/token/introspect" th:href="@{/token/introspect}"><span style="font-size:medium">Token Introspect</span></a>
-                    </li>
-                    <li class="list-group-item">
-                        <a href="/token/revoke" th:href="@{/token/revoke}"><span style="font-size:medium">Token Revoke</span></a>
-                    </li>
                     <li class="list-group-item">
                         <a href="/authorize?grant_type=authorization_code" th:href="@{/authorize?grant_type=authorization_code}"><span style="font-size:medium">Authorization Code</span>&nbsp;&nbsp;<small class="text-muted">(Login to Spring Authorization Server using: user1/password)</small></a>
                     </li>

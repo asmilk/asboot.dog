@@ -15,14 +15,19 @@
  */
 package asboot.auth.config;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 /**
  * @author Joe Grandja
@@ -31,24 +36,53 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
+	
+	@Value("${uaa.logout-uri}")
+	private String uaaLogoutUri;
+
+	@Autowired
+	private OAuth2LogoutHandler oAuth2LogoutHandler;
+	
+	@Autowired
+	private ClientRegistrationRepository clientRegistrationRepository;
 
 	@Bean
 	WebSecurityCustomizer webSecurityCustomizer() {
-		return (web) -> web.ignoring().requestMatchers("/webjars/**");
+		return (web) -> web.ignoring().requestMatchers("/webjars/**", "/favicon.ico");
 	}
 
-	// @formatter:off
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		
+		// @formatter:off
 		http
-			.authorizeHttpRequests(authorize ->
-				authorize.anyRequest().authenticated()
-			)
-			.oauth2Login(oauth2Login ->
-				oauth2Login.loginPage("/oauth2/authorization/messaging-client-oidc"))
+			.authorizeHttpRequests(authorize -> authorize
+				.requestMatchers("/index").permitAll()
+				.anyRequest().authenticated())
+			.logout(logout -> logout
+//				.addLogoutHandler(this.oAuth2LogoutHandler)
+				.clearAuthentication(true)
+				.invalidateHttpSession(true)
+//				.logoutSuccessUrl(this.uaaLogoutUri)
+				.logoutSuccessHandler(oidcLogoutSuccessHandler())
+				)
+			
+			.oauth2Login(oauth2Login -> oauth2Login
+				.loginPage("/oauth2/authorization/messaging-client-oidc"))
 			.oauth2Client(withDefaults());
+		// @formatter:on
 		return http.build();
 	}
-	// @formatter:on
+	
+	private LogoutSuccessHandler oidcLogoutSuccessHandler() {
+		OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
+				new OidcClientInitiatedLogoutSuccessHandler(this.clientRegistrationRepository);
+
+		// Set the location that the End-User's User Agent will be redirected to
+		// after the logout has been performed at the Provider
+		oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}/index");
+
+		return oidcLogoutSuccessHandler;
+	}
 
 }
